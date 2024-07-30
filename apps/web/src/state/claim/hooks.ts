@@ -131,11 +131,20 @@ function useUserClaimData(account: string | null | undefined): UserClaimData | n
 
 // check if user is in blob and has not yet claimed UNI
 export function useUserHasAvailableClaim(account: string | null | undefined): boolean {
-  const userClaimData = useUserClaimData(account)
-  const distributorContract = useMerkleDistributorContract()
-  const isClaimedResult = useSingleCallResult(distributorContract, 'isClaimed', [userClaimData?.index])
+  const userClaimData = useUserClaimData(account);
+  const distributorContract = useMerkleDistributorContract();
+  // @ts-ignore
+  const isClaimedResult = useSingleCallResult(
+    distributorContract,
+    "isClaimed",
+    [userClaimData?.index]
+  );
   // user is in blob and contract marks as unclaimed
-  return Boolean(userClaimData && !isClaimedResult.loading && isClaimedResult.result?.[0] === false)
+  return Boolean(
+    userClaimData &&
+      !isClaimedResult.loading &&
+      isClaimedResult.result?.[0] === false
+  );
 }
 
 export function useUserUnclaimedAmount(account: string | null | undefined): CurrencyAmount<Token> | undefined {

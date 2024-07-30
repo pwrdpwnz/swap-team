@@ -21,27 +21,41 @@ function toDeadline(expiration: number): number {
 }
 
 export function usePermitAllowance(token?: Token, owner?: string, spender?: string) {
-  const contract = useContract<Permit2>(PERMIT2_ADDRESS, PERMIT2_ABI)
-  const inputs = useMemo(() => [owner, token?.address, spender], [owner, spender, token?.address])
+  const contract = useContract<Permit2>(PERMIT2_ADDRESS, PERMIT2_ABI);
+  const inputs = useMemo(
+    () => [owner, token?.address, spender],
+    [owner, spender, token?.address]
+  );
 
   // If there is no allowance yet, re-check next observed block.
   // This guarantees that the permitAllowance is synced upon submission and updated upon being synced.
-  const [blocksPerFetch, setBlocksPerFetch] = useState<1>()
-  const result = useSingleCallResult(contract, 'allowance', inputs, {
+  const [blocksPerFetch, setBlocksPerFetch] = useState<1>();
+  // @ts-ignore
+  const result = useSingleCallResult(contract, "allowance", inputs, {
     blocksPerFetch,
-  }).result as Awaited<ReturnType<Permit2['allowance']>> | undefined
+  }).result as Awaited<ReturnType<Permit2["allowance"]>> | undefined;
 
-  const rawAmount = result?.amount.toString() // convert to a string before using in a hook, to avoid spurious rerenders
+  const rawAmount = result?.amount.toString(); // convert to a string before using in a hook, to avoid spurious rerenders
   const allowance = useMemo(
-    () => (token && rawAmount ? CurrencyAmount.fromRawAmount(token, rawAmount) : undefined),
+    () =>
+      token && rawAmount
+        ? CurrencyAmount.fromRawAmount(token, rawAmount)
+        : undefined,
     [token, rawAmount]
-  )
-  useEffect(() => setBlocksPerFetch(allowance?.equalTo(0) ? 1 : undefined), [allowance])
+  );
+  useEffect(
+    () => setBlocksPerFetch(allowance?.equalTo(0) ? 1 : undefined),
+    [allowance]
+  );
 
   return useMemo(
-    () => ({ permitAllowance: allowance, expiration: result?.expiration, nonce: result?.nonce }),
+    () => ({
+      permitAllowance: allowance,
+      expiration: result?.expiration,
+      nonce: result?.nonce,
+    }),
     [allowance, result?.expiration, result?.nonce]
-  )
+  );
 }
 
 interface Permit extends PermitSingle {

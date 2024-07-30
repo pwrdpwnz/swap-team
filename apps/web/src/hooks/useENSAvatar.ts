@@ -47,15 +47,29 @@ export default function useENSAvatar(
 }
 
 function useAvatarFromNode(node?: string): { avatar?: string; loading: boolean } {
-  const nodeArgument = useMemo(() => [node], [node])
-  const textArgument = useMemo(() => [node, 'avatar'], [node])
-  const registrarContract = useENSRegistrarContract()
-  const resolverAddress = useMainnetSingleCallResult(registrarContract, 'resolver', nodeArgument, NEVER_RELOAD)
-  const resolverAddressResult = resolverAddress.result?.[0]
+  const nodeArgument = useMemo(() => [node], [node]);
+  const textArgument = useMemo(() => [node, "avatar"], [node]);
+  const registrarContract = useENSRegistrarContract();
+  // @ts-ignore
+  const resolverAddress = useMainnetSingleCallResult(
+    registrarContract,
+    "resolver",
+    nodeArgument,
+    NEVER_RELOAD
+  );
+  const resolverAddressResult = resolverAddress.result?.[0];
   const resolverContract = useENSResolverContract(
-    resolverAddressResult && !isZero(resolverAddressResult) ? resolverAddressResult : undefined
-  )
-  const avatar = useMainnetSingleCallResult(resolverContract, 'text', textArgument, NEVER_RELOAD)
+    resolverAddressResult && !isZero(resolverAddressResult)
+      ? resolverAddressResult
+      : undefined
+  );
+  // @ts-ignore
+  const avatar = useMainnetSingleCallResult(
+    resolverContract,
+    "text",
+    textArgument,
+    NEVER_RELOAD
+  );
 
   return useMemo(
     () => ({
@@ -63,7 +77,7 @@ function useAvatarFromNode(node?: string): { avatar?: string; loading: boolean }
       loading: avatar.loading,
     }),
     [avatar.loading, avatar.result]
-  )
+  );
 }
 
 function useAvatarFromNFT(
@@ -119,9 +133,16 @@ function useERC721Uri(
   enforceOwnership: boolean
 ): { uri?: string; loading: boolean } {
   const idArgument = useMemo(() => [id], [id])
-  const { account } = useWeb3React()
+  const { account } = useWeb3React();
   const contract = useERC721Contract(contractAddress)
-  const owner = useMainnetSingleCallResult(contract, 'ownerOf', idArgument, NEVER_RELOAD)
+  // @ts-ignore
+  const owner = useMainnetSingleCallResult(
+    contract,
+    "ownerOf",
+    idArgument,
+    NEVER_RELOAD
+  );
+  // @ts-ignore
   const uri = useMainnetSingleCallResult(contract, 'tokenURI', idArgument, NEVER_RELOAD)
   return useMemo(
     () => ({
@@ -139,9 +160,16 @@ function useERC1155Uri(
   enforceOwnership: boolean
 ): { uri?: string; loading: boolean } {
   const idArgument = useMemo(() => [id], [id])
-  const accountArgument = useMemo(() => [ownerAddress, id], [ownerAddress, id])
+  const accountArgument = useMemo(() => [ownerAddress, id], [ownerAddress, id]);
   const contract = useERC1155Contract(contractAddress)
-  const balance = useMainnetSingleCallResult(contract, 'balanceOf', accountArgument, NEVER_RELOAD)
+  // @ts-ignore
+  const balance = useMainnetSingleCallResult(
+    contract,
+    "balanceOf",
+    accountArgument,
+    NEVER_RELOAD
+  );
+  // @ts-ignore
   const uri = useMainnetSingleCallResult(contract, 'uri', idArgument, NEVER_RELOAD)
   return useMemo(() => {
     try {

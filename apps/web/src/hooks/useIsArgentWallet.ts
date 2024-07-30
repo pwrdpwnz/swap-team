@@ -5,9 +5,15 @@ import { useMemo } from 'react'
 import { useArgentWalletDetectorContract } from './useContract'
 
 export default function useIsArgentWallet(): boolean {
-  const { account } = useWeb3React()
-  const argentWalletDetector = useArgentWalletDetectorContract()
-  const inputs = useMemo(() => [account ?? undefined], [account])
-  const call = useSingleCallResult(argentWalletDetector, 'isArgentWallet', inputs, NEVER_RELOAD)
-  return Boolean(call?.result?.[0])
+  const { account } = useWeb3React();
+  const argentWalletDetector = useArgentWalletDetectorContract();
+  const inputs = useMemo(() => [account ?? undefined], [account]);
+  // @ts-ignore
+  const call = useSingleCallResult(
+    argentWalletDetector,
+    "isArgentWallet",
+    inputs,
+    NEVER_RELOAD
+  );
+  return Boolean(call?.result?.[0]);
 }

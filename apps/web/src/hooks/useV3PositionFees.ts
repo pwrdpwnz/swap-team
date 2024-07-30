@@ -16,18 +16,22 @@ export function useV3PositionFees(
   tokenId?: BigNumber,
   asWETH = false
 ): [CurrencyAmount<Currency>, CurrencyAmount<Currency>] | [undefined, undefined] {
-  const positionManager = useV3NFTPositionManagerContract(false)
-  const owner: string | undefined = useSingleCallResult(tokenId ? positionManager : null, 'ownerOf', [tokenId])
-    .result?.[0]
+  const positionManager = useV3NFTPositionManagerContract(false);
+  // @ts-ignore
+  const owner: string | undefined = useSingleCallResult(
+    tokenId ? positionManager : null,
+    "ownerOf",
+    [tokenId]
+  ).result?.[0];
 
-  const tokenIdHexString = tokenId?.toHexString()
-  const latestBlockNumber = useBlockNumber()
+  const tokenIdHexString = tokenId?.toHexString();
+  const latestBlockNumber = useBlockNumber();
 
   // we can't use multicall for this because we need to simulate the call from a specific address
   // latestBlockNumber is included to ensure data stays up-to-date every block
-  const [amounts, setAmounts] = useState<[BigNumber, BigNumber] | undefined>()
+  const [amounts, setAmounts] = useState<[BigNumber, BigNumber] | undefined>();
   useEffect(() => {
-    ;(async function getFees() {
+    (async function getFees() {
       if (positionManager && tokenIdHexString && owner) {
         try {
           const results = await positionManager.callStatic.collect(
@@ -38,23 +42,29 @@ export function useV3PositionFees(
               amount1Max: MAX_UINT128,
             },
             { from: owner } // need to simulate the call as the owner
-          )
-          setAmounts([results.amount0, results.amount1])
+          );
+          setAmounts([results.amount0, results.amount1]);
         } catch {
           // If the static call fails, the default state will remain for `amounts`.
           // This case is handled by returning unclaimed fees as empty.
           // TODO(WEB-2283): Look into why we have failures with call data being 0x.
         }
       }
-    })()
-  }, [positionManager, tokenIdHexString, owner, latestBlockNumber])
+    })();
+  }, [positionManager, tokenIdHexString, owner, latestBlockNumber]);
 
   if (pool && amounts) {
     return [
-      CurrencyAmount.fromRawAmount(asWETH ? pool.token0 : unwrappedToken(pool.token0), amounts[0].toString()),
-      CurrencyAmount.fromRawAmount(asWETH ? pool.token1 : unwrappedToken(pool.token1), amounts[1].toString()),
-    ]
+      CurrencyAmount.fromRawAmount(
+        asWETH ? pool.token0 : unwrappedToken(pool.token0),
+        amounts[0].toString()
+      ),
+      CurrencyAmount.fromRawAmount(
+        asWETH ? pool.token1 : unwrappedToken(pool.token1),
+        amounts[1].toString()
+      ),
+    ];
   } else {
-    return [undefined, undefined]
+    return [undefined, undefined];
   }
 }

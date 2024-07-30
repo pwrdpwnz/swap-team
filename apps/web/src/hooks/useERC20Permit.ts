@@ -115,25 +115,39 @@ export function useERC20Permit(
   state: UseERC20PermitState
   gatherPermitSignature: null | (() => Promise<void>)
 } {
-  const account = useAccount()
-  const provider = useEthersWeb3Provider()
-  const tokenAddress = currencyAmount?.currency?.isToken ? currencyAmount.currency.address : undefined
-  const eip2612Contract = useEIP2612Contract(tokenAddress)
-  const isArgentWallet = useIsArgentWallet()
-  const nonceInputs = useMemo(() => [account.address ?? undefined], [account.address])
-  const tokenNonceState = useSingleCallResult(eip2612Contract, 'nonces', nonceInputs)
+  const account = useAccount();
+  const provider = useEthersWeb3Provider();
+  const tokenAddress = currencyAmount?.currency?.isToken
+    ? currencyAmount.currency.address
+    : undefined;
+  const eip2612Contract = useEIP2612Contract(tokenAddress);
+  const isArgentWallet = useIsArgentWallet();
+  const nonceInputs = useMemo(
+    () => [account.address ?? undefined],
+    [account.address]
+  );
+  // @ts-ignore
+  const tokenNonceState = useSingleCallResult(
+    eip2612Contract,
+    "nonces",
+    nonceInputs
+  );
   const permitInfo =
     overridePermitInfo ??
-    (account.status === 'connected' && tokenAddress ? PERMITTABLE_TOKENS[account.chainId]?.[tokenAddress] : undefined)
+    (account.status === "connected" && tokenAddress
+      ? PERMITTABLE_TOKENS[account.chainId]?.[tokenAddress]
+      : undefined);
 
-  const [signatureData, setSignatureData] = useState<SignatureData | null>(null)
+  const [signatureData, setSignatureData] = useState<SignatureData | null>(
+    null
+  );
 
   return useMemo(() => {
     if (
       isArgentWallet ||
       !currencyAmount ||
       !eip2612Contract ||
-      account.status !== 'connected' ||
+      account.status !== "connected" ||
       !transactionDeadline ||
       !provider ||
       !tokenNonceState.valid ||
@@ -145,16 +159,16 @@ export function useERC20Permit(
         state: UseERC20PermitState.NOT_APPLICABLE,
         signatureData: null,
         gatherPermitSignature: null,
-      }
+      };
     }
 
-    const nonceNumber = tokenNonceState.result?.[0]?.toNumber()
-    if (tokenNonceState.loading || typeof nonceNumber !== 'number') {
+    const nonceNumber = tokenNonceState.result?.[0]?.toNumber();
+    if (tokenNonceState.loading || typeof nonceNumber !== "number") {
       return {
         state: UseERC20PermitState.LOADING,
         signatureData: null,
         gatherPermitSignature: null,
-      }
+      };
     }
 
     const isSignatureDataValid =
@@ -164,16 +178,22 @@ export function useERC20Permit(
       signatureData.tokenAddress === tokenAddress &&
       signatureData.nonce === nonceNumber &&
       signatureData.spender === spender &&
-      ('allowed' in signatureData ||
-        JSBI.greaterThanOrEqual(JSBI.BigInt(signatureData.amount), currencyAmount.quotient))
+      ("allowed" in signatureData ||
+        JSBI.greaterThanOrEqual(
+          JSBI.BigInt(signatureData.amount),
+          currencyAmount.quotient
+        ));
 
     return {
-      state: isSignatureDataValid ? UseERC20PermitState.SIGNED : UseERC20PermitState.NOT_SIGNED,
+      state: isSignatureDataValid
+        ? UseERC20PermitState.SIGNED
+        : UseERC20PermitState.NOT_SIGNED,
       signatureData: isSignatureDataValid ? signatureData : null,
       gatherPermitSignature: async function gatherPermitSignature() {
-        const allowed = permitInfo.type === PermitType.ALLOWED
-        const signatureDeadline = transactionDeadline.toNumber() + PERMIT_VALIDITY_BUFFER
-        const value = currencyAmount.quotient.toString()
+        const allowed = permitInfo.type === PermitType.ALLOWED;
+        const signatureDeadline =
+          transactionDeadline.toNumber() + PERMIT_VALIDITY_BUFFER;
+        const value = currencyAmount.quotient.toString();
 
         const message = allowed
           ? {
@@ -189,7 +209,7 @@ export function useERC20Permit(
               value,
               nonce: nonceNumber,
               deadline: signatureDeadline,
-            }
+            };
         const domain = permitInfo.version
           ? {
               name: permitInfo.name,
@@ -201,19 +221,21 @@ export function useERC20Permit(
               name: permitInfo.name,
               verifyingContract: tokenAddress,
               chainId: account.chainId,
-            }
+            };
         const data = JSON.stringify({
           types: {
-            EIP712Domain: permitInfo.version ? EIP712_DOMAIN_TYPE : EIP712_DOMAIN_TYPE_NO_VERSION,
+            EIP712Domain: permitInfo.version
+              ? EIP712_DOMAIN_TYPE
+              : EIP712_DOMAIN_TYPE_NO_VERSION,
             Permit: allowed ? PERMIT_ALLOWED_TYPE : EIP2612_TYPE,
           },
           domain,
-          primaryType: 'Permit',
+          primaryType: "Permit",
           message,
-        })
+        });
 
         return provider
-          .send('eth_signTypedData_v4', [account.address, data])
+          .send("eth_signTypedData_v4", [account.address, data])
           .then(splitSignature)
           .then((signature) => {
             setSignatureData({
@@ -228,10 +250,10 @@ export function useERC20Permit(
               spender,
               tokenAddress,
               permitType: permitInfo.type,
-            })
-          })
+            });
+          });
       },
-    }
+    };
   }, [
     isArgentWallet,
     currencyAmount,
@@ -248,5 +270,5 @@ export function useERC20Permit(
     spender,
     permitInfo,
     signatureData,
-  ])
+  ]);
 }

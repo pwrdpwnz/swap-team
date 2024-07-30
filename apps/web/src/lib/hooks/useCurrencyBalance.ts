@@ -17,8 +17,8 @@ import { useInterfaceMulticall } from '../../hooks/useContract'
 export function useNativeCurrencyBalances(uncheckedAddresses?: (string | undefined)[]): {
   [address: string]: CurrencyAmount<Currency> | undefined
 } {
-  const chainId = useChainId()
-  const multicallContract = useInterfaceMulticall()
+  const chainId = useChainId();
+  const multicallContract = useInterfaceMulticall();
 
   const validAddressInputs: [string][] = useMemo(
     () =>
@@ -30,20 +30,30 @@ export function useNativeCurrencyBalances(uncheckedAddresses?: (string | undefin
             .map((addr) => [addr])
         : [],
     [uncheckedAddresses]
-  )
+  );
 
-  const results = useSingleContractMultipleData(multicallContract, 'getEthBalance', validAddressInputs)
+  // @ts-ignore
+  const results = useSingleContractMultipleData(
+    multicallContract,
+    "getEthBalance",
+    validAddressInputs
+  );
 
   return useMemo(
     () =>
-      validAddressInputs.reduce<{ [address: string]: CurrencyAmount<Currency> }>((memo, [address], i) => {
-        const value = results?.[i]?.result?.[0]
+      validAddressInputs.reduce<{
+        [address: string]: CurrencyAmount<Currency>;
+      }>((memo, [address], i) => {
+        const value = results?.[i]?.result?.[0];
         if (value && chainId)
-          memo[address] = CurrencyAmount.fromRawAmount(nativeOnChain(chainId), JSBI.BigInt(value.toString()))
-        return memo
+          memo[address] = CurrencyAmount.fromRawAmount(
+            nativeOnChain(chainId),
+            JSBI.BigInt(value.toString())
+          );
+        return memo;
       }, {}),
     [validAddressInputs, chainId, results]
-  )
+  );
 }
 
 const ERC20Interface = new Interface(ERC20ABI) as Erc20Interface

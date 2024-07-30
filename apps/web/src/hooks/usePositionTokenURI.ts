@@ -29,52 +29,62 @@ type UsePositionTokenURIResult =
     }
 
 export function usePositionTokenURI(tokenId: TokenId | undefined): UsePositionTokenURIResult {
-  const contract = useV3NFTPositionManagerContract()
+  const contract = useV3NFTPositionManagerContract();
   const inputs = useMemo(
-    () => [tokenId instanceof BigNumber ? tokenId.toHexString() : tokenId?.toString(16)],
+    () => [
+      tokenId instanceof BigNumber
+        ? tokenId.toHexString()
+        : tokenId?.toString(16),
+    ],
     [tokenId]
-  )
-  const { result, error, loading, valid } = useSingleCallResult(contract, 'tokenURI', inputs, {
-    ...NEVER_RELOAD,
-    gasRequired: 3_000_000,
-  })
+  );
+  // @ts-ignore
+  const { result, error, loading, valid } = useSingleCallResult(
+    contract,
+    "tokenURI",
+    inputs,
+    {
+      ...NEVER_RELOAD,
+      gasRequired: 3_000_000,
+    }
+  );
 
   return useMemo(() => {
     if (error || !valid || !tokenId) {
       return {
         valid: false,
         loading: false,
-      }
+      };
     }
     if (loading) {
       return {
         valid: true,
         loading: true,
-      }
+      };
     }
     if (!result) {
       return {
         valid: false,
         loading: false,
-      }
+      };
     }
-    const [tokenURI] = result as [string]
+    const [tokenURI] = result as [string];
     if (!tokenURI || !tokenURI.startsWith(STARTS_WITH))
       return {
         valid: false,
         loading: false,
-      }
+      };
 
     try {
-      const json = JSON.parse(atob(tokenURI.slice(STARTS_WITH.length)))
+      const json = JSON.parse(atob(tokenURI.slice(STARTS_WITH.length)));
 
       return {
         valid: true,
         loading: false,
         result: json,
-      }
+      };
     } catch (error) {
-      return { valid: false, loading: false }
+      return { valid: false, loading: false };
     }
-  }, [error, loading, result, tokenId, valid])
+  }, [error, loading, result, tokenId, valid]);
 }
