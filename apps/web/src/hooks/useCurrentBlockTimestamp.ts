@@ -7,18 +7,14 @@ import { useInterfaceMulticall } from './useContract'
 
 // gets the current timestamp from the blockchain
 export default function useCurrentBlockTimestamp(options?: ListenerOptions): BigNumber | undefined {
-  const multicall = useInterfaceMulticall();
+  const multicall = useInterfaceMulticall()
 
   const resultStr: string | undefined = useSingleCallResult(
     // @ts-ignore
     multicall,
-    "getCurrentBlockTimestamp",
+    'getCurrentBlockTimestamp',
     undefined,
     options
-  )?.result?.[0]?.toString();
-  return useMemo(
-    () =>
-      typeof resultStr === "string" ? BigNumber.from(resultStr) : undefined,
-    [resultStr]
-  );
+  )?.result?.[0]?.toString()
+  return useMemo(() => (typeof resultStr === 'string' ? BigNumber.from(resultStr) : undefined), [resultStr])
 }

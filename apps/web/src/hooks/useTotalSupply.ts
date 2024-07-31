@@ -7,21 +7,12 @@ import { useTokenContract } from './useContract'
 // returns undefined if input token is undefined, or fails to get token contract,
 // or contract total supply cannot be fetched
 export function useTotalSupply(token?: Currency): CurrencyAmount<Token> | undefined {
-  const contract = useTokenContract(
-    token?.isToken ? token.address : undefined,
-    false
-  );
-  //@ts-ignore
-  const totalSupplyStr: string | undefined = useSingleCallResult(
-    contract,
-    "totalSupply"
-  )?.result?.[0]?.toString();
+  const contract = useTokenContract(token?.isToken ? token.address : undefined, false)
+    //@ts-ignore
+  const totalSupplyStr: string | undefined = useSingleCallResult(contract, 'totalSupply')?.result?.[0]?.toString()
 
   return useMemo(
-    () =>
-      token?.isToken && totalSupplyStr
-        ? CurrencyAmount.fromRawAmount(token, totalSupplyStr)
-        : undefined,
+    () => (token?.isToken && totalSupplyStr ? CurrencyAmount.fromRawAmount(token, totalSupplyStr) : undefined),
     [token, totalSupplyStr]
-  );
+  )
 }
